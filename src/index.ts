@@ -1,5 +1,9 @@
 import { DocumentNode, parse, print, visit } from 'graphql';
 
+export interface Env {
+	ORIGIN: string;
+}
+
 async function sha256(message: string) {
 	// encode as UTF-8
 	const msgBuffer = await new TextEncoder().encode(message);
@@ -39,13 +43,11 @@ export function queriesWithCacheDirectives(ast: DocumentNode) {
 }
 
 export default {
-	async fetch(request: Request): Promise<Response> {
-		const remote = 'https://pto-api.admiraldigital.dev/v1/graphql';
+	async fetch(request: Request, env: Env): Promise<Response> {
+		const remote = env.ORIGIN;
 
 		// Parse the request body containing the graphql query.
 		const requestBody = (await request.clone().json()) as { query: string; operationName?: string; variables: any };
-
-		// FIXME: this leads to data leakage if the tokens are different.
 
 		const ast = parse(requestBody.query);
 
